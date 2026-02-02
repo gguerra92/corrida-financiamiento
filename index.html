@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="es-MX">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Corrida de Financiamiento</title>
+  <link rel="manifest" href="./manifest.webmanifest" />
+  <link rel="stylesheet" href="./styles.css" />
+  <meta name="theme-color" content="#111111" />
+
+  <!-- PDF (CDN). Si quieres 100% offline, luego te explico cómo “empaquetarlos” local. -->
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
+</head>
+<body>
+  <header class="app-header">
+    <div class="brand">
+      <div class="brand-title">Corrida de Financiamiento</div>
+      <div class="brand-subtitle">Captura rápida · Tabla · PDF</div>
+    </div>
+    <div class="badge">MXN</div>
+  </header>
+
+  <main class="container">
+    <section class="card">
+      <h2>Datos</h2>
+
+      <div class="grid">
+        <label class="field">
+          <span>Cliente</span>
+          <input id="cliente" type="text" placeholder="Nombre del cliente" maxlength="60" />
+        </label>
+
+        <label class="field">
+          <span>Monto total del paquete (con IVA)</span>
+          <input id="total" type="number" inputmode="decimal" placeholder="Ej. 100000" min="0" step="0.01" />
+        </label>
+
+        <label class="field">
+          <span>% Enganche</span>
+          <input id="enganchePct" type="number" inputmode="decimal" placeholder="Ej. 8" min="0" max="100" step="0.01" />
+          <small>Si capturas monto de enganche, este % se recalcula.</small>
+        </label>
+
+        <label class="field">
+          <span>Enganche (con IVA)</span>
+          <input id="engancheMonto" type="number" inputmode="decimal" placeholder="Ej. 8000" min="0" step="0.01" />
+          <small>Si lo llenas, tiene prioridad sobre el %.</small>
+        </label>
+
+        <label class="field">
+          <span>Tasa anual (%)</span>
+          <input id="tasaAnual" type="number" inputmode="decimal" placeholder="Ej. 20" min="0" step="0.01" />
+        </label>
+
+        <label class="field">
+          <span>Meses</span>
+          <input id="meses" type="number" inputmode="numeric" placeholder="Ej. 36" min="1" max="120" step="1" />
+        </label>
+
+        <label class="field">
+          <span>Primer pago (fecha)</span>
+          <input id="primerPago" type="date" />
+        </label>
+
+        <label class="field">
+          <span>IVA (%)</span>
+          <input id="ivaPct" type="number" inputmode="decimal" value="16" min="0" max="30" step="0.01" />
+        </label>
+
+        <label class="field">
+          <span>Cálculo de IVA</span>
+          <select id="ivaModo">
+            <option value="total">IVA sobre (capital + interés) — similar a tu Excel</option>
+            <option value="interes">IVA solo sobre interés — común en muchos casos</option>
+          </select>
+        </label>
+
+        <label class="field">
+          <span>Días por periodo (base 360)</span>
+          <input id="diasPeriodo" type="number" inputmode="numeric" value="30" min="1" max="31" step="1" />
+          <small>Tu plantilla usa 30 días (360/30).</small>
+        </label>
+      </div>
+
+      <div class="actions">
+        <button id="btnCalcular" class="btn primary">Calcular</button>
+        <button id="btnLimpiar" class="btn">Limpiar</button>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Resumen</h2>
+      <div class="summary">
+        <div class="summary-item">
+          <div class="k">Subtotal (sin IVA)</div>
+          <div class="v" id="resSubtotal">—</div>
+        </div>
+        <div class="summary-item">
+          <div class="k">IVA total</div>
+          <div class="v" id="resIva">—</div>
+        </div>
+        <div class="summary-item">
+          <div class="k">Enganche</div>
+          <div class="v" id="resEnganche">—</div>
+        </div>
+        <div class="summary-item">
+          <div class="k">Monto a financiar</div>
+          <div class="v" id="resFinanciar">—</div>
+        </div>
+        <div class="summary-item">
+          <div class="k">Mensualidad (aprox.)</div>
+          <div class="v" id="resMensualidad">—</div>
+        </div>
+        <div class="summary-item">
+          <div class="k">Monto final financiado</div>
+          <div class="v" id="resTotalFin">—</div>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button id="btnPDF" class="btn primary" disabled>Generar PDF</button>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Corrida</h2>
+      <div class="table-wrap">
+        <table id="tabla">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Fecha</th>
+              <th>Saldo inicial (sin IVA)</th>
+              <th>Abono capital</th>
+              <th>Interés</th>
+              <th>IVA</th>
+              <th>Pago</th>
+              <th>Saldo final</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <div class="hint">
+        * La corrida se calcula sobre el monto “sin IVA” y luego agrega IVA al pago (según el modo elegido).
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <span>Hecho para uso móvil · Sin licencias</span>
+  </footer>
+
+  <script src="./app.js"></script>
+</body>
+</html>
